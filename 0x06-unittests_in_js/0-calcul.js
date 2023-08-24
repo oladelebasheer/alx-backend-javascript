@@ -1,7 +1,5 @@
-var assert = require('assert');
+const calculateNumber = (a, b) => {
+  return Math.round(a) + Math.round(b);
+};
 
-function add(a, b) {
-  return a + b;
-}
-
-assert(add(1, 2) === 3, "The add() function should return 3 when given the arguments 1 and 2");
+module.exports = calculateNumber;
