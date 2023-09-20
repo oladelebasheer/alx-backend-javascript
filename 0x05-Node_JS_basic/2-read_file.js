@@ -1,35 +1,36 @@
-const fsp = require('fs').promises;
+const fs = require('fs');
 
-const countStudents = async (path) => {
+module.exports = function countStudents(path) {
   try {
-    const promise = await fsp.readFile(path, 'utf8');
+    // read data
+    const data = fs.readFileSync(path, { encoding: 'utf-8' });
+    // split data and taking only list without header
+    const lines = data.split('\n').slice(1, -1);
+    // give the header of data
+    const header = data.split('\n').slice(0, 1)[0].split(',');
+    // find firstname and field index
+    const idxFn = header.findIndex((ele) => ele === 'firstname');
+    const idxFd = header.findIndex((ele) => ele === 'field');
+    // declarate two dictionaries for count each fields and store list of students
+    const fields = {};
+    const students = {};
 
-    let lines = promise.split(/\r?\n/);
-    lines.shift();
-    lines = lines.filter((line) => line !== '');
+    lines.forEach((line) => {
+      const list = line.split(',');
+      if (!fields[list[idxFd]]) fields[list[idxFd]] = 0;
+      fields[list[idxFd]] += 1;
+      if (!students[list[idxFd]]) students[list[idxFd]] = '';
+      students[list[idxFd]] += students[list[idxFd]] ? `, ${list[idxFn]}` : list[idxFn];
+    });
 
     console.log(`Number of students: ${lines.length}`);
-
-    const cs = lines
-      .filter((line) => line.endsWith('CS'))
-      .map((line) => {
-        const student = line.split(',');
-        return student[0];
-      });
-    console.log(`Number of students in CS: ${cs.length}. List: ${cs.join(', ')}`);
-
-    const swe = lines
-      .filter((line) => line.endsWith('SWE'))
-      .map((line) => {
-        const student = line.split(',');
-        return student[0];
-      });
-    console.log(`Number of students in SWE: ${swe.length}. List: ${swe.join(', ')}`);
-
-    return { lines, cs, swe };
-  } catch (err) {
-    throw Error('Cannot load the database');
+    for (const key in fields) {
+      if (Object.hasOwnProperty.call(fields, key)) {
+        const element = fields[key];
+        console.log(`Number of students in ${key}: ${element}. List: ${students[key]}`);
+      }
+    }
+  } catch (error) {
+    throw new Error('Cannot load the database');
   }
 };
-
-module.exports = countStudents;
